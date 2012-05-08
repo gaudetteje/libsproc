@@ -192,7 +192,7 @@ switch band
     case 'half'
         fd.freq = ts.fs.*linspace(0, 0.5, nfft/2+1).';
         fd.freq(end) = [];
-        fd.mag = 2.*fd.mag(1:nfft/2,:);   % scale spectrum for real signals
+        fd.mag = 2.*fd.mag(1:floor(nfft/2),:);   % scale spectrum for real signals
         if N==nfft
             % correct the DC level (also need to figure in window effect for N<NFFT)
             fd.mag(1,:) = fd.mag(1,:)./2;
