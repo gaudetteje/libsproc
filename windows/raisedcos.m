@@ -15,7 +15,9 @@ w = ones(n,1);
 
 % find the p-percent index into n-point array
 idx = round(n*p/100);
-if ~idx; error('Percent taper too large or length too small'); end
+if ~idx
+    error('Percent taper too large or length too small')
+end
 
 % apply front taper
 w(1:idx+1) = w(1:idx+1) .* cos(pi/2*(0:1/idx:1) - pi/2)';
