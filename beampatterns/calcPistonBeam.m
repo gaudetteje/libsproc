@@ -2,11 +2,13 @@ function varargout = calcPistonBeam(D,f,varargin)
 % calcPistonBeam  Computes the beam pattern response for a standard piston
 % model of fixed aperture in an infinite baffle
 %
-% B = calcPistonBeam(D,f) returns the beam pattern vs. 
+% B = calcPistonBeam(D,f) returns the beam pattern vs. azimuth for the
+%   specified frequency or frequencies
+% B = calcPistonBeam(D,f,theta,c) overrides the default parameters below
 %
 % Default parameters:
-%   c = 344             speed of sound in air [m/s]
 %   theta = (-90:2:90)  azimuth [degrees]
+%   c = 344             speed of sound in air [m/s]
 %
 % Example 1 - Calculate the 1kHz beam pattern for an aperture of a 2 cm diameter
 %   >> D = 0.02;
@@ -49,8 +51,9 @@ theta = theta(:);
 lambda = c./f;
 
 % compute theoretical piston beam pattern
-beta = sin(theta*pi/180);
-B = (2 * besselj(1,beta * (pi*D./lambda)) ./ (beta * (pi*D./lambda))).^2;
+beta = sin(theta*(pi/180)) * (pi*D./lambda);
+B = (2 * real(besselj(1,beta)) ./ beta).^2;
+B(isnan(B)) = 1;    % fix issue with 0/0
 
 % generate plot if no output arguments present
 switch (nargout)
