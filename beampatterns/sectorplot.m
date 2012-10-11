@@ -25,9 +25,9 @@ fNum = 101;
 rNum = 101;
 tNum = 101;
 f = logspace(4,5,fNum);       % frequency points - log scale [Hz]
-r = linspace(0.1,5,rNum)';         % range points - linear scale [m]
+rho = linspace(0.1,10,rNum)';         % range points - linear scale [m]
 theta = linspace(-90,90,tNum);       % azimuth points - linear scale [degrees]
-r1 = 1;               % TL reference range [m]
+r1 = 0.1;               % TL reference range [m]
 
 % selected region of focus
 r0 = 1;                 % central region of focus in range [m]
@@ -43,11 +43,11 @@ alt_const = -16e-6;
 %% compute range-dependent losses
 
 % calculate range dependent spherical spreading losses (logarithmic with range)
-TL_sph = 20*log10(r./r1) * ones(1,numel(f));        % TL [dB]
+TL_sph = 20*log10(rho./r1) * ones(1,numel(f));        % TL [dB]
 
 % calculate frequency dependent absorption and spreading losses (linear with range)
 alpha = calcAbsorptionCoef(f,rh,T,p);
-TL_abs = r * alpha';     % TL [dB] => [dB/m * m]
+TL_abs = rho * alpha';     % TL [dB] => [dB/m * m]
 
 % find total combined 2-way transmission loss vs. range and frequency
 TL = TL_abs + TL_sph;   % TL [dB] = dB + dB
@@ -55,7 +55,7 @@ TL = TL_abs + TL_sph;   % TL [dB] = dB + dB
 % plot transmission loss
 if PLOTFLAG
     figure;
-    semilogx(r,TL)
+    semilogx(rho,TL)
     grid on
     %legend(num2str(1e-3*f'),'location','northwest')
     xlabel('Range (m)')
@@ -70,7 +70,7 @@ ES = -2*TL + TS;        % echo strength relative to source level [dB SPL @ r1]
 % plot relative echo strength
 if PLOTFLAG
     figure;
-    semilogx(r,ES)
+    semilogx(rho,ES)
     grid on
     %legend(num2str(1e-3*f'),'location','southwest')
     xlabel('Range (m)')
@@ -100,7 +100,7 @@ end
 %% combine range and angular losses to form sector plot
 % Z results in a 3D data cube where range, azimuth, and frequency are the
 % dimensions of the NxMxL matrix
-N = numel(r);
+N = numel(rho);
 M = numel(theta);
 L = numel(f);
 
@@ -116,12 +116,12 @@ V = V1 + V2;
 % plot slices through volumetric data
 if PLOTFLAG
     figure;
-    [X,Y,Z] = meshgrid(theta,r,f*1e-3);
-    xslice = [0];        % azimuth slice
-    yslice = [2.5];        % range slice
-    zslice = [20];      % frequency slice
+    [X,Y,Z] = meshgrid(theta,rho,f*1e-3);
+    xslice = [0 10];        % azimuth slice
+    yslice = [5 10];        % range slice
+    zslice = [20 40 60 80 100];      % frequency slice
     h = slice(X,Y,Z,V,xslice,yslice,zslice);
-    set(gca,'clim',[-40 0])
+    set(gca,'clim',[-100 -20])
     set(gca,'ZDir','reverse')
     set(h,'EdgeColor','none')  %'FaceColor','interp')
     xlabel('azimuth (deg)')
@@ -129,12 +129,46 @@ if PLOTFLAG
     zlabel('frequency (kHz)')
     title(sprintf('Relative Echo Intensity (dB re %g m)',r1))
     colorbar
-%    colormap(hot)
-    view(0,90)
 end
+
+%%
+
+% 
+% % plot volumetric data on polar coordinates
+% if PLOTFLAG
+%     figure;
+% %    [x,y] = pol2cart(theta*pi/180,rho');
+% %    [X,Y,Z] = meshgrid(x,y,f*1e-3);
+%     xslice = [0 10];        % azimuth slice
+%     yslice = [5 10];        % range slice
+%     zslice = [20 40 60 80 100];      % frequency slice
+%     h = slice(X,Y,Z,V,xslice,yslice,zslice);
+%     set(gca,'clim',[-100 -20])
+%     set(gca,'ZDir','reverse')
+%     
+%     set(h,'EdgeColor','none')  %'FaceColor','interp')
+%     xlabel('azimuth (deg)')
+%     ylabel('range (m)')
+%     zlabel('frequency (kHz)')
+%     title(sprintf('Relative Echo Intensity (dB re %g m)',r1))
+%     colorbar
+% end
 
 
 %% compute the 
 
 
 % find the effective transfer function for a given focus point in the range/azimuth plane
+
+
+tilefigs
+
+
+%%
+if PLOTFLAG
+    idx = 70;
+    figure;
+    polar3d(flipud(V(:,:,idx)),-pi/2,pi/2,rho(1),rho(end),1,'surfc');
+    shading interp;
+    title(sprintf('f = %g',f(idx)))
+end
