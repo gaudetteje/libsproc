@@ -13,37 +13,37 @@ close all
 clear
 clc
 
-PLOTFLAG = true;
+PLOTFLAG = false;
+
+set(0,'DefaultFigureColor','w')
+set(0,'DefaultAxesFontSize',18)
+
+
+% region of focus and sensitivity
+rho0 = 5;                 % central region of focus in range [m]
+theta0 = 0;             % central region of focus in azimuth [m]
+alt_const = -16e-6;     % amplitude latency trading constant [us/dB]
+tau = 1e-5;             % delay sensitivity for contour plot
 
 % environmental parameters
 T = 25;                 % temperature [deg. C]
 rh = 50;                % relative humidity [%]
 p = 101.325;            % barometric pressure (1 atm)
 
-% user parameters
+% plotting parameters
 fNum = 101;
 rNum = 101;
 tNum = 101;
-f = logspace(4,5,fNum);       % frequency points - log scale [Hz]
-rho = linspace(0.1,10,rNum)';         % range points - linear scale [m]
-theta = linspace(-90,90,tNum);       % azimuth points - linear scale [degrees]
-r1 = 0.1;               % TL reference range [m]
-
-% selected region of focus
-r0 = 1;                 % central region of focus in range [m]
-theta0 = 0;             % central region of focus in azimuth [m]
-
-% define region of delay sensitivity
-tau = 1e-5;             % delay sensitivity for contour plot
-
-% amplitude latency trading constant [us/dB]
-alt_const = -16e-6;
+f = logspace(4,5,fNum);         % frequency points - log scale [Hz]
+rho = linspace(0.1,10,rNum)';   % range points - linear scale [m]
+theta = linspace(-90,90,tNum);  % azimuth points - linear scale [degrees]
+rhoRef = 0.1;                     % TL reference range [m]
 
 
 %% compute range-dependent losses
 
 % calculate range dependent spherical spreading losses (logarithmic with range)
-TL_sph = 20*log10(rho./r1) * ones(1,numel(f));        % TL [dB]
+TL_sph = 20*log10(rho./rhoRef) * ones(1,numel(f));        % TL [dB]
 
 % calculate frequency dependent absorption and spreading losses (linear with range)
 alpha = calcAbsorptionCoef(f,rh,T,p);
@@ -59,7 +59,7 @@ if PLOTFLAG
     grid on
     %legend(num2str(1e-3*f'),'location','northwest')
     xlabel('Range (m)')
-    ylabel(sprintf('Attenuation (dB re %g m)',r1))
+    ylabel(sprintf('Attenuation (dB re %g m)',rhoRef))
     title('One-Way Transmission Loss in Air')
 end
 
@@ -74,7 +74,7 @@ if PLOTFLAG
     grid on
     %legend(num2str(1e-3*f'),'location','southwest')
     xlabel('Range (m)')
-    ylabel(sprintf('Relative Echo Intensity (dB re %g m)',r1))
+    ylabel(sprintf('Relative Echo Intensity (dB re %g m)',rhoRef))
     title(sprintf('Frequency Dependent Echo Strength for TS = %g dB',TS))
 end
 
@@ -111,64 +111,84 @@ V2 = permute(B,[3 1 2]);
 V2 = repmat(V2,[N 1 1]);
 
 % combine results (by summation in dB)
-V = V1 + V2;
+V = V1 + 2.*V2;     % double beam pattern for receive as well!
 
 % plot slices through volumetric data
-if PLOTFLAG
+if 1
     figure;
     [X,Y,Z] = meshgrid(theta,rho,f*1e-3);
     xslice = [0 10];        % azimuth slice
     yslice = [5 10];        % range slice
     zslice = [20 40 60 80 100];      % frequency slice
     h = slice(X,Y,Z,V,xslice,yslice,zslice);
-    set(gca,'clim',[-100 -20])
+    set(gca,'clim',[-140 -20])
     set(gca,'ZDir','reverse')
     set(h,'EdgeColor','none')  %'FaceColor','interp')
+    shading interp
     xlabel('azimuth (deg)')
     ylabel('range (m)')
     zlabel('frequency (kHz)')
-    title(sprintf('Relative Echo Intensity (dB re %g m)',r1))
+    title(sprintf('Relative Echo Intensity (dB re %g m)',rhoRef))
     colorbar
 end
 
-%%
 
-% 
-% % plot volumetric data on polar coordinates
-% if PLOTFLAG
-%     figure;
-% %    [x,y] = pol2cart(theta*pi/180,rho');
-% %    [X,Y,Z] = meshgrid(x,y,f*1e-3);
-%     xslice = [0 10];        % azimuth slice
-%     yslice = [5 10];        % range slice
-%     zslice = [20 40 60 80 100];      % frequency slice
-%     h = slice(X,Y,Z,V,xslice,yslice,zslice);
-%     set(gca,'clim',[-100 -20])
-%     set(gca,'ZDir','reverse')
-%     
-%     set(h,'EdgeColor','none')  %'FaceColor','interp')
-%     xlabel('azimuth (deg)')
-%     ylabel('range (m)')
-%     zlabel('frequency (kHz)')
-%     title(sprintf('Relative Echo Intensity (dB re %g m)',r1))
-%     colorbar
-% end
+%% compute the effective transfer function at specified focal point in the range/azimuth plane
 
+% find TF at focus point
+rIdx = find(rho0 <= rho,1);
+thetaIdx = find(theta0 <= theta,1);
 
-%% compute the 
-
-
-% find the effective transfer function for a given focus point in the range/azimuth plane
-
-
-tilefigs
-
-
-%%
-if PLOTFLAG
-    idx = 70;
-    figure;
-    polar3d(flipud(V(:,:,idx)),-pi/2,pi/2,rho(1),rho(end),1,'surfc');
-    shading interp;
-    title(sprintf('f = %g',f(idx)))
+if (isempty(rIdx) || isempty(thetaIdx))
+    error('Select a focus point within the plotted region')
 end
+tf = V(rIdx,thetaIdx,:);
+
+% subtract TF from all other points in range-azimuth plane
+W = V - repmat(tf,[L M 1]);
+
+
+% plot slices through volumetric data
+if 1
+    figure;
+    xslice = [0 30];        % azimuth slice
+    yslice = [5 10];        % range slice
+    zslice = [20 40 60 80 100];      % frequency slice
+    h = slice(X,Y,Z,W,xslice,yslice,zslice);
+    set(gca,'clim',[-40 40])
+    set(gca,'ZDir','reverse')
+    set(h,'EdgeColor','none')  %'FaceColor','interp')
+    shading interp
+    xlabel('azimuth (deg)')
+    ylabel('range (m)')
+    zlabel('frequency (kHz)')
+    title(sprintf('Echo amplitude difference (focal point @ %g m, %g deg)',rho0,theta0))
+    colormap(hotcold)
+    colorbar
+end
+
+
+%% assign deviation based on error criterion (linear)
+E_sc = sum(abs(W),3)./L;        % spectrogram correlation deviation (simple summation across frequency)
+
+
+% plot normalized L1 norm error surface [dB]
+if 1
+    figure;
+    %polar3d(10.^(flipud(-E)/10),-pi/2,pi/2,rho(1),rho(end),1,'surfc');
+    polar3d(flipud(-E_sc),-pi/2,pi/2,rho(1),rho(end),1,'surfc');
+    shading interp;
+    title(sprintf('SCAT - L1 error surface at (%g m, %g deg)',rho0,theta0))
+    colorbar
+    set(gca,'zlim',[-20 0])
+    set(gca,'clim',[-20 0])
+    %axis equal
+end
+
+
+
+
+%% compute TDOA based on 2 spaced out receive elements
+
+d = 0.014;          % distance between elements
+src = [-d/2 d/2];   % coordinates of receive elements
