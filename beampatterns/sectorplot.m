@@ -1,4 +1,4 @@
-% plot sector scan of relative echo intensity, time delay, and/or sensitivity
+% Plot sector scan of relative echo intensity, time delay, and/or sensitivity
 
 % Basic assumptions:
 %   - Transmission losses are range and frequency dependent and accounted
@@ -13,17 +13,23 @@ close all
 clear
 clc
 
-PLOTFLAG = false;
+PLOTFLAG = true;
 
 set(0,'DefaultFigureColor','w')
 set(0,'DefaultAxesFontSize',18)
+set(0,'DefaultTextFontSize',18)
 
 
 % region of focus and sensitivity
-rho0 = 5;                 % central region of focus in range [m]
-theta0 = 0;             % central region of focus in azimuth [m]
+rho0 = .05;               % central region of focus in range [m]
+theta0 = 10;             % central region of focus in azimuth [m]
 alt_const = -16e-6;     % amplitude latency trading constant [us/dB]
 tau = 1e-5;             % delay sensitivity for contour plot
+
+% physical parameters
+D = 0.0094;             % transmit aperture
+d = 0.014;              % distance between receive elements
+
 
 % environmental parameters
 T = 25;                 % temperature [deg. C]
@@ -32,12 +38,17 @@ p = 101.325;            % barometric pressure (1 atm)
 
 % plotting parameters
 fNum = 101;
-rNum = 101;
-tNum = 101;
+rNum = 201;
+tNum = 201;
 f = logspace(4,5,fNum);         % frequency points - log scale [Hz]
-rho = linspace(0.1,10,rNum)';   % range points - linear scale [m]
+rho = linspace(0.001,.05,rNum)';   % range points - linear scale [m]
 theta = linspace(-90,90,tNum);  % azimuth points - linear scale [degrees]
-rhoRef = 0.1;                     % TL reference range [m]
+rhoRef = .001;                   % TL reference range [m]
+
+% derive parameters for later use
+N = numel(rho);
+M = numel(theta);
+L = numel(f);
 
 
 %% compute range-dependent losses
@@ -57,10 +68,12 @@ if PLOTFLAG
     figure;
     semilogx(rho,TL)
     grid on
-    %legend(num2str(1e-3*f'),'location','northwest')
     xlabel('Range (m)')
     ylabel(sprintf('Attenuation (dB re %g m)',rhoRef))
     title('One-Way Transmission Loss in Air')
+    if numel(f) <= 11
+        legend([num2str(round(1e-3*f')) ones(L,1)*' kHz'],'location','northwest')
+    end
 end
 
 % convert TL to ES
@@ -72,14 +85,15 @@ if PLOTFLAG
     figure;
     semilogx(rho,ES)
     grid on
-    %legend(num2str(1e-3*f'),'location','southwest')
     xlabel('Range (m)')
     ylabel(sprintf('Relative Echo Intensity (dB re %g m)',rhoRef))
     title(sprintf('Frequency Dependent Echo Strength for TS = %g dB',TS))
+    if numel(f) <= 11
+        legend([num2str(round(1e-3*f')) ones(L,1)*' kHz'],'location','southwest')
+    end
 end
 
 %% compute beam pattern directivity
-D = 0.0094;             % transmit aperture
 c = calcSoundSpeed(T);  % compute speed of sound in air
 B = calcPistonBeam(D,f,theta(:),c);
 B = 10*log10(B);
@@ -89,20 +103,19 @@ if PLOTFLAG
     figure;
     plot(theta,B)
     axis([theta(1) theta(end) -30 0])
-    %legend(num2str(1e-3*f'),'location','south')
     grid on
     xlabel('Azimuth (deg)')
     ylabel('Intensity (dB)')
     title(sprintf('Angular Directivity of Source with d = %g cm',D*1e2))
+    if numel(f) <= 11
+        legend([num2str(round(1e-3*f')) ones(L,1)*' kHz'],'location','south')
+    end
 end
 
 
 %% combine range and angular losses to form sector plot
 % Z results in a 3D data cube where range, azimuth, and frequency are the
 % dimensions of the NxMxL matrix
-N = numel(rho);
-M = numel(theta);
-L = numel(f);
 
 V1 = permute(ES,[1 3 2]);
 V1 = repmat(V1,[1 M 1]);
@@ -111,16 +124,17 @@ V2 = permute(B,[3 1 2]);
 V2 = repmat(V2,[N 1 1]);
 
 % combine results (by summation in dB)
-V = V1 + 2.*V2;     % double beam pattern for receive as well!
+V = V1 + V2;     % double beam pattern for receive as well!
 
 % plot slices through volumetric data
-if 1
+if PLOTFLAG
     figure;
     [X,Y,Z] = meshgrid(theta,rho,f*1e-3);
-    xslice = [0 10];        % azimuth slice
-    yslice = [5 10];        % range slice
-    zslice = [20 40 60 80 100];      % frequency slice
-    h = slice(X,Y,Z,V,xslice,yslice,zslice);
+    xslice = theta0;        % azimuth slice
+    yslice = rho0;        % range slice
+    zslice = [20 50 80 100];      % frequency slice
+    h = slice(X,Y,Z,V,xslice,yslice,zslice); hold on
+    plot3([theta0 theta0], [rho0 rho0], [0 f(end)]*1e-3,'k','linewidth',2); hold off
     set(gca,'clim',[-140 -20])
     set(gca,'ZDir','reverse')
     set(h,'EdgeColor','none')  %'FaceColor','interp')
@@ -145,20 +159,20 @@ end
 tf = V(rIdx,thetaIdx,:);
 
 % subtract TF from all other points in range-azimuth plane
-W = V - repmat(tf,[L M 1]);
+W = V - repmat(tf,[N M 1]);
 
 
 % plot slices through volumetric data
-if 1
+if PLOTFLAG
     figure;
     xslice = [0 30];        % azimuth slice
     yslice = [5 10];        % range slice
-    zslice = [20 40 60 80 100];      % frequency slice
+    zslice = [20 50 90 100];      % frequency slice
     h = slice(X,Y,Z,W,xslice,yslice,zslice);
     set(gca,'clim',[-40 40])
     set(gca,'ZDir','reverse')
     set(h,'EdgeColor','none')  %'FaceColor','interp')
-    shading interp
+    %shading interp
     xlabel('azimuth (deg)')
     ylabel('range (m)')
     zlabel('frequency (kHz)')
@@ -169,26 +183,107 @@ end
 
 
 %% assign deviation based on error criterion (linear)
-E_sc = sum(abs(W),3)./L;        % spectrogram correlation deviation (simple summation across frequency)
-
+E_dbamp = sum(abs(W),3)./L;        % spectrogram correlation deviation (simple summation across frequency)
+E_sc = alt_const * E_dbamp;        % convert from dB amplitude error to delay error
 
 % plot normalized L1 norm error surface [dB]
-if 1
+if 1 %PLOTFLAG
+    
+    dispmeth = 3;       % linear/logarithmic & amplitude (dB) vs. time (microsec)
+    plotmeth = 2;       % plot type
+    
     figure;
-    %polar3d(10.^(flipud(-E)/10),-pi/2,pi/2,rho(1),rho(end),1,'surfc');
-    polar3d(flipud(-E_sc),-pi/2,pi/2,rho(1),rho(end),1,'surfc');
-    shading interp;
-    title(sprintf('SCAT - L1 error surface at (%g m, %g deg)',rho0,theta0))
-    colorbar
-    set(gca,'zlim',[-20 0])
-    set(gca,'clim',[-20 0])
-    %axis equal
+        
+    % set intensity scale and depth to match physical parameters
+    switch dispmeth
+        case 1
+            % linear amplitude
+            EE = 10.^(flipud(-E_dbamp)/10);
+            cMap = jet;
+            cRange = [0 max(max(EE))];
+            aRatio = [1 1 1/5];
+            units = 'normalized amplitude';
+        case 2
+            % logarithmic amplitude [dB deviation]
+            EE = flipud(E_dbamp);
+            cMap = flipud(jet);
+            cRange = [0 3];
+            aRatio = [1 1 1/5];
+            units = 'dB';
+        case 3
+            % linear time scale [microseconds deviation]
+            EE = flipud(-E_sc)*1e6;
+            cMap = flipud(jet);
+            cRange = [0 50];
+            aRatio = [1 1 50];
+            units = '\mus';
+    end
+    
+    switch plotmeth
+        case 1
+            surfc(theta,rho,flipud(EE));
+            shading interp
+            colorbar
+            view(2)
+        case 2
+            polar3d(EE,-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
+            polar3d(nan(size(EE)),-pi/2,pi/2,rho(1),rho(end)+.1,1,'meshl'); hold off;
+            set(gca,'FontSize',24)
+            set(gca,'DataAspectRatio',aRatio)
+            set(gca,'ylim',rho(end) * [-1.1 1.1])
+            set(gca,'xlim',rho(end) * [-0.1 1.1])
+            shading interp
+            set(gca,'clim',cRange)
+            zRange = get(gca,'zlim');
+            set(gca,'zlim',[zRange(1)-10 zRange(2)])
+            colormap(cMap)
+            colorbar('location','westoutside')
+            view(2)
+        case 3
+            polar3d(EE,-pi/2,pi/2,rho(1),rho(end),1,'contour');
+    end
+    title(sprintf('Minimum L1 error [%s] (%g m, %g deg)',units,rho0,theta0))
 end
 
 
 
-
 %% compute TDOA based on 2 spaced out receive elements
+rcv = [-d/2 d/2];   % assign coordinates of receive elements
+[y0,x0] = pol2cart(theta0*pi/180,rho0);
 
-d = 0.014;          % distance between elements
-src = [-d/2 d/2];   % coordinates of receive elements
+% calculate TDOA from focal point [s]
+tdoa0 = calcArrivalTime([rcv; 0 0], [x0; y0], c);
+deltau0 = diff(tdoa0);
+
+% calculate TDOA from all points [s]
+[THETA,RHO] = meshgrid(theta',rho);
+[Y0,X0] = pol2cart(THETA*pi/180,RHO);
+XX = reshape(X0,1,numel(X0));
+YY = reshape(Y0,1,numel(Y0));
+TDOA = calcArrivalTime([rcv; 0 0],[XX;YY],c);
+
+% compute difference in TDOA from focal point
+delTau = diff(TDOA,1,1);
+delTau = reshape(delTau,N,M);
+ZZ = (delTau - deltau0)*1e6;       % relative difference in time from expected (micro sec)
+
+% plot sector plot showing time difference (in micro sec)
+if 1 %PLOTFLAG
+    figure
+    polar3d(flipud(ZZ),-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
+    polar3d(nan(size(ZZ)),-pi/2,pi/2,rho(1),rho(end)+.1,1,'meshl'); hold off;
+    set(gca,'FontSize',24)
+    set(gca,'DataAspectRatio',aRatio)
+    set(gca,'ylim',rho(end) * [-1.1 1.1])
+    set(gca,'xlim',rho(end) * [-0.1 1.1])
+    shading interp
+    set(gca,'clim',[-45 45])
+    zRange = get(gca,'zlim');
+    set(gca,'zlim',[zRange(1)-10 zRange(2)])
+    colormap(hotcold)
+    colorbar('location','westoutside')
+    view(2)
+    
+    title(sprintf('Time difference of arrival [%s] (%g m, %g deg)','\mus',rho0,theta0))
+end
+
