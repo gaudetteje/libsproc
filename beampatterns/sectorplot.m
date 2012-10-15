@@ -13,7 +13,7 @@
 clear
 clc
 
-PLOTFLAG = true;
+PLOTFLAG = false;
 
 set(0,'DefaultFigureColor','w')
 set(0,'DefaultAxesFontSize',18)
@@ -21,8 +21,8 @@ set(0,'DefaultTextFontSize',18)
 
 
 % region of focus and sensitivity
-rho0 = 7.5;               % central region of focus in range [m]
-theta0 = 0;             % central region of focus in azimuth [m]
+rho0 = 4.5;               % central region of focus in range [m]
+theta0 = 30;             % central region of focus in azimuth [m]
 alt_const = -16e-6;     % amplitude latency trading constant [us/dB]
 tau = 1e-5;             % delay sensitivity for contour plot
 
@@ -30,18 +30,17 @@ tau = 1e-5;             % delay sensitivity for contour plot
 D = 0.0094;             % transmit aperture
 d = 0.014;              % distance between receive elements
 
-
 % environmental parameters
 T = 25;                 % temperature [deg. C]
 rh = 50;                % relative humidity [%]
 p = 101.325;            % barometric pressure (1 atm)
 
 % plotting parameters
-fNum = 101;
-rNum = 201;
-tNum = 201;
+fNum = 401;
+rNum = 401;
+tNum = 401;
 f = logspace(4,5,fNum);         % frequency points - log scale [Hz]
-rho = linspace(0.1,10,rNum)';   % range points - linear scale [m]
+rho = linspace(0.1,5,rNum)';   % range points - linear scale [m]
 theta = linspace(-90,90,tNum);  % azimuth points - linear scale [degrees]
 rhoRef = .1;                   % TL reference range [m]
 
@@ -188,7 +187,7 @@ E_dbamp = sum(abs(W),3)./L;        % spectrogram correlation deviation (simple s
 E_sc = alt_const * E_dbamp;        % convert from dB amplitude error to delay error
 
 % plot normalized L1 norm error surface [dB]
-if PLOTFLAG
+if 1 %PLOTFLAG
     
     dispmeth = 3;       % linear/logarithmic & amplitude (dB) vs. time (microsec)
     plotmeth = 2;       % plot type
@@ -199,21 +198,21 @@ if PLOTFLAG
     switch dispmeth
         case 1
             % linear amplitude
-            EE = 10.^(flipud(-E_dbamp)/10);
+            EE = 10.^(-E_dbamp/10);
             cMap = jet;
             cRange = [0 max(max(EE))];
             aRatio = [1 1 1/5];
             units = 'normalized amplitude';
         case 2
             % logarithmic amplitude [dB deviation]
-            EE = flipud(E_dbamp);
+            EE = E_dbamp;
             cMap = flipud(jet);
             cRange = [0 3];
             aRatio = [1 1 1/5];
             units = 'dB';
         case 3
             % linear time scale [microseconds deviation]
-            EE = flipud(-E_sc)*1e6;
+            EE = -E_sc*1e6;
             cMap = flipud(jet);
             cRange = [0 40];
             aRatio = [1 1 50];
@@ -227,7 +226,7 @@ if PLOTFLAG
             colorbar
             view(2)
         case 2
-            polar3d(EE,-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
+            polar3d(flipud(EE),-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
             polar3d(nan(size(EE)),-pi/2,pi/2,rho(1),rho(end)+.1,1,'meshl'); hold off;
             set(gca,'FontSize',18)
             set(gca,'DataAspectRatio',aRatio)
@@ -269,7 +268,7 @@ delTau = reshape(delTau,N,M);
 ZZ = (delTau - deltau0)*1e6;       % relative difference in time from expected (micro sec)
 
 % plot sector plot showing time difference (in micro sec)
-if PLOTFLAG
+if 1 %PLOTFLAG
     aRatio = [1 1 50];
     figure
     polar3d(flipud(ZZ),-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
@@ -289,3 +288,27 @@ if PLOTFLAG
     title(sprintf('Time difference of arrival [%s] (%g m, %g deg)','\mus',rho0,theta0))
 end
 
+
+%% combine SC deviation and TDOA deviation
+
+QQ = abs(ZZ) + EE;
+
+if 1 %PLOTFLAG
+    aRatio = [1 1 50];
+    figure
+    polar3d(flipud(QQ),-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
+    polar3d(nan(size(QQ)),-pi/2,pi/2,rho(1),rho(end)+.1,1,'meshl'); hold off;
+    set(gca,'FontSize',18)
+    set(gca,'DataAspectRatio',aRatio)
+    set(gca,'ylim',rho(end) * [-1.1 1.1])
+    set(gca,'xlim',rho(end) * [-0.1 1.1])
+    shading interp
+    set(gca,'clim',[0 30])
+    zRange = get(gca,'zlim');
+    set(gca,'zlim',[zRange(1)-10 zRange(2)])
+    colormap(flipud(jet))
+    colorbar('location','westoutside')
+    view(2)
+    
+    %title(sprintf('Time difference of arrival [%s] (%g m, %g deg)','\mus',rho0,theta0))
+end
