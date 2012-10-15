@@ -9,7 +9,7 @@
 %     directivity
 %   - Echo strength is uniform across all frequencies
 
-close all
+%close all
 clear
 clc
 
@@ -21,8 +21,8 @@ set(0,'DefaultTextFontSize',18)
 
 
 % region of focus and sensitivity
-rho0 = .05;               % central region of focus in range [m]
-theta0 = 10;             % central region of focus in azimuth [m]
+rho0 = 7.5;               % central region of focus in range [m]
+theta0 = 0;             % central region of focus in azimuth [m]
 alt_const = -16e-6;     % amplitude latency trading constant [us/dB]
 tau = 1e-5;             % delay sensitivity for contour plot
 
@@ -41,9 +41,9 @@ fNum = 101;
 rNum = 201;
 tNum = 201;
 f = logspace(4,5,fNum);         % frequency points - log scale [Hz]
-rho = linspace(0.001,.05,rNum)';   % range points - linear scale [m]
+rho = linspace(0.1,10,rNum)';   % range points - linear scale [m]
 theta = linspace(-90,90,tNum);  % azimuth points - linear scale [degrees]
-rhoRef = .001;                   % TL reference range [m]
+rhoRef = .1;                   % TL reference range [m]
 
 % derive parameters for later use
 N = numel(rho);
@@ -61,7 +61,7 @@ alpha = calcAbsorptionCoef(f,rh,T,p);
 TL_abs = rho * alpha';     % TL [dB] => [dB/m * m]
 
 % find total combined 2-way transmission loss vs. range and frequency
-TL = TL_abs + TL_sph;   % TL [dB] = dB + dB
+TL = TL_abs;%%%%%% + TL_sph;   % TL [dB] = dB + dB
 
 % plot transmission loss
 if PLOTFLAG
@@ -117,27 +117,28 @@ end
 % Z results in a 3D data cube where range, azimuth, and frequency are the
 % dimensions of the NxMxL matrix
 
-V1 = permute(ES,[1 3 2]);
+V1 = permute(ES,[1 3 2]);   % normalize to spherical spreading losses!
 V1 = repmat(V1,[1 M 1]);
 
 V2 = permute(B,[3 1 2]);
 V2 = repmat(V2,[N 1 1]);
 
 % combine results (by summation in dB)
-V = V1 + V2;     % double beam pattern for receive as well!
+V = V1 + V2;        % Range-dependence + Azimuth-dependence
 
 % plot slices through volumetric data
 if PLOTFLAG
     figure;
     [X,Y,Z] = meshgrid(theta,rho,f*1e-3);
-    xslice = theta0;        % azimuth slice
-    yslice = rho0;        % range slice
-    zslice = [20 50 80 100];      % frequency slice
+    xslice = theta0;            % azimuth slice
+    yslice = rho0;              % range slice
+    zslice = [20 50 80 100];    % frequency slice
     h = slice(X,Y,Z,V,xslice,yslice,zslice); hold on
     plot3([theta0 theta0], [rho0 rho0], [0 f(end)]*1e-3,'k','linewidth',2); hold off
-    set(gca,'clim',[-140 -20])
+    %cRange = get(gca,'clim');
+    %set(gca,'clim',[cRange(2)-40 cRange(2)])
     set(gca,'ZDir','reverse')
-    set(h,'EdgeColor','none')  %'FaceColor','interp')
+    set(h,'EdgeColor','none')
     shading interp
     xlabel('azimuth (deg)')
     ylabel('range (m)')
@@ -165,9 +166,9 @@ W = V - repmat(tf,[N M 1]);
 % plot slices through volumetric data
 if PLOTFLAG
     figure;
-    xslice = [0 30];        % azimuth slice
-    yslice = [5 10];        % range slice
-    zslice = [20 50 90 100];      % frequency slice
+    xslice = theta0;        % azimuth slice
+    yslice = rho0;        % range slice
+    zslice = [20 50 80 100];      % frequency slice
     h = slice(X,Y,Z,W,xslice,yslice,zslice);
     set(gca,'clim',[-40 40])
     set(gca,'ZDir','reverse')
@@ -187,13 +188,13 @@ E_dbamp = sum(abs(W),3)./L;        % spectrogram correlation deviation (simple s
 E_sc = alt_const * E_dbamp;        % convert from dB amplitude error to delay error
 
 % plot normalized L1 norm error surface [dB]
-if 1 %PLOTFLAG
+if PLOTFLAG
     
     dispmeth = 3;       % linear/logarithmic & amplitude (dB) vs. time (microsec)
     plotmeth = 2;       % plot type
     
     figure;
-        
+    
     % set intensity scale and depth to match physical parameters
     switch dispmeth
         case 1
@@ -214,7 +215,7 @@ if 1 %PLOTFLAG
             % linear time scale [microseconds deviation]
             EE = flipud(-E_sc)*1e6;
             cMap = flipud(jet);
-            cRange = [0 50];
+            cRange = [0 40];
             aRatio = [1 1 50];
             units = '\mus';
     end
@@ -228,7 +229,7 @@ if 1 %PLOTFLAG
         case 2
             polar3d(EE,-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
             polar3d(nan(size(EE)),-pi/2,pi/2,rho(1),rho(end)+.1,1,'meshl'); hold off;
-            set(gca,'FontSize',24)
+            set(gca,'FontSize',18)
             set(gca,'DataAspectRatio',aRatio)
             set(gca,'ylim',rho(end) * [-1.1 1.1])
             set(gca,'xlim',rho(end) * [-0.1 1.1])
@@ -268,16 +269,17 @@ delTau = reshape(delTau,N,M);
 ZZ = (delTau - deltau0)*1e6;       % relative difference in time from expected (micro sec)
 
 % plot sector plot showing time difference (in micro sec)
-if 1 %PLOTFLAG
+if PLOTFLAG
+    aRatio = [1 1 50];
     figure
     polar3d(flipud(ZZ),-pi/2,pi/2,rho(1),rho(end),1,'surf'); hold on;
     polar3d(nan(size(ZZ)),-pi/2,pi/2,rho(1),rho(end)+.1,1,'meshl'); hold off;
-    set(gca,'FontSize',24)
+    set(gca,'FontSize',18)
     set(gca,'DataAspectRatio',aRatio)
     set(gca,'ylim',rho(end) * [-1.1 1.1])
     set(gca,'xlim',rho(end) * [-0.1 1.1])
     shading interp
-    set(gca,'clim',[-45 45])
+    set(gca,'clim',[-40 40])
     zRange = get(gca,'zlim');
     set(gca,'zlim',[zRange(1)-10 zRange(2)])
     colormap(hotcold)
