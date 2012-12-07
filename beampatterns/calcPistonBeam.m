@@ -5,15 +5,16 @@ function varargout = calcPistonBeam(D,f,varargin)
 % B = calcPistonBeam(D,f) returns the beam pattern vs. azimuth for the
 %   specified frequency or frequencies
 % B = calcPistonBeam(D,f,theta,c) overrides the default parameters below
+% [B,theta] = calcPistonBeam(...) also returns the angle, theta
 %
 % Default parameters:
-%   theta = (-90:2:90)  azimuth [degrees]
+%   theta = (-90:1:90)  azimuth [degrees]
 %   c = 344             speed of sound in air [m/s]
 %
 % Example 1 - Calculate the 1kHz beam pattern for an aperture of a 2 cm diameter
 %   >> D = 0.02;
 %   >> f = 1e3;
-%   >> B = calcPistonBeam(D,f);
+%   >> [B,theta] = calcPistonBeam(D,f);
 %
 % Example 2 - Calculate the beam pattern across two decades of frequency.
 %   Use specific angles and sound speed for 15 degrees Celcius. 
@@ -66,7 +67,7 @@ switch (nargout)
         varargout{1} = B;
     case 2
         varargout{1} = B;
-        varargout{2} = beta;
+        varargout{2} = theta;
     otherwise
         error('Incorrect number of output parameters')
 end
