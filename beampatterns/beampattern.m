@@ -1,5 +1,6 @@
-nfft = 1024;
-array = ones(1,12);
+close all
+
+nfft = 2^16;
 
 % apply aperture shading
 %array = array .* hamming(length(array)).';
@@ -13,10 +14,14 @@ array = ones(1,12);
 %array = array .* exp(j*2*pi*1);
 
 c = 344;
-f = 20e3;%[20:10:100].* 1e3;
-d = .014;
-
+f = 100e3;%[20:10:100].* 1e3;
 lambda = c./f;
+
+d = lambda/2;%.014;
+
+M = 90;
+
+array = ones(1,M);
 
 pattern = abs(fftshift(fft(array,nfft)));
 pattern = db(pattern./max(pattern));
