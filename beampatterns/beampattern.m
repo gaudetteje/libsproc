@@ -14,16 +14,17 @@ nfft = 2^16;
 %array = array .* exp(j*2*pi*1);
 
 c = 344;
-f = 100e3;%[20:10:100].* 1e3;
+f = 20e3;%[20:10:100].* 1e3;
 lambda = c./f;
 
 d = lambda/2;%.014;
 
-M = 90;
+M = 130;
 
 array = ones(1,M);
+wind = chebwin(M,40)';
 
-pattern = abs(fftshift(fft(array,nfft)));
+pattern = abs(fftshift(fft(wind .* array,nfft)));
 pattern = db(pattern./max(pattern));
 
 L  = (-nfft/2:(nfft/2)-1);
@@ -34,19 +35,25 @@ figure(1)
 ph = plot(angles,pattern);
 grid on;
 hold on;
-xlabel('Angle (degrees)')
-ylabel('Magnitude')
+set(gca,'fontsize',20)
+xlabel('Angle (degrees)','fontsize',20)
+ylabel('Magnitude','fontsize',20)
+axis([-90 90 -60 6])
+set(gca,'xtick',[-90:30:90])
+
+text(15,-5,'\beta = 1.5\circ','fontsize',22,'fontweight','bold')
 
 
-color = {'b','g','r','c','m','k'};
-idx = length(get(gca,'Children'));
-idx = mod(idx,length(color))+1;
-set(ph,'Color',color{idx});
+%color = {'b','g','r','c','m','k'};
+%idx = length(get(gca,'Children'));
+%idx = mod(idx,length(color))+1;
+%set(ph,'Color',color{idx});
+% 
+% pattern(pattern == -Inf) = -100;
+% patt = 100+pattern;
+% 
+% figure(2)
+% ph2 = polar(pi*angles/180,patt);
+% view(-90,90)
 
-pattern(pattern == -Inf) = -100;
-patt = 100+pattern;
-
-figure(2)
-ph2 = polar(pi*angles/180,patt);
-
-set(ph2,'Color',color{idx});
+%set(ph2,'Color',color{idx});
