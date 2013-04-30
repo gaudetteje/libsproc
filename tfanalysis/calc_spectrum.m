@@ -1,9 +1,11 @@
-function fd = calc_spectrum(ts,varargin)
+function fd = calc_spectrum(x,varargin)
 %CALC_SPECTRUM   Calculates the amplitude or power spectrum of a time series signal
 %
-% FD = CALC_SPECTRUM(TS) calculates the amplitude spectrum for a time-series
-%     signal
-% FD = CALC_SPECTRUM(TS,NFFT,WIN,NAVG,OVERLAP,BAND,ACDC,UNITS) applies the
+% FD = CALC_SPECTRUM(X) calculates the amplitude spectrum for a time-series
+%     signal, X, with the sampling rate normalized to 1 Hz
+% FD = CALC_SPECTRUM(X,FS)  specifies the sampling rate, FS
+% FD = CALC_SPECTRUM(TS)  alternatively accepts the time series struct, TS
+% FD = CALC_SPECTRUM(...,NFFT,WIN,NAVG,OVERLAP,BAND,ACDC,UNITS) applies the
 %     optional parameters to spectral analysis
 % FD = CALC_SPECTRUM(1)  returns an empty struct - useful for initialization
 %     of large arrays
@@ -12,7 +14,7 @@ function fd = calc_spectrum(ts,varargin)
 %   .data  LxN matrix for L samples and N channels [Volts or counts]
 %   .fs    scalar sampling rate [Hz]
 %
-% TS can also be an LxN matrix, but data is normalized to a 1Hz sampling rate
+% Note:  multiple data channels, N, may be entered as an LxN matrix
 %
 % Optional Input Parameters:
 % <name>    <default>     <description>
@@ -23,7 +25,7 @@ function fd = calc_spectrum(ts,varargin)
 % OVERLAP   0.5           Percent overlap for use when averaging
 % BAND      'half'        Specify a 'full' or 'half' spectrum
 % ACDC      'dc'          Specify 'ac' or 'dc' coupling to remove DC offset
-% UNITS     'Vrms'        Specify the units of the magnitude (see below)
+% UNITS     'Vpk'         Specify the units of the magnitude (see below)
 %
 % UNITS are initially in 'Vpk' and are then converted using CONVERT_SPECTRUM.  
 %
@@ -48,76 +50,46 @@ function fd = calc_spectrum(ts,varargin)
 % Author:   Jason Gaudette
 % Company:  Naval Undersea Warfare Center (Newport, RI)
 % Phone:    401.832.6601
-% Email:    gaudetteje@npt.nuwc.navy.mil
-% Date:     20101230
+% Email:    jason.e.gaudette@navy.mil
+% Date:     20130430
 %
 
+%% Handle data struct
 
-% default parameters
-nfft = 4096;
-win = @hamming;
-navg = 1;
-overlap = 0.5;
-band = 'half';
-acdc = 'dc';
-units = 'Vpk';
-
-
-% parse input parameters
-switch nargin
-    case 8
-        units = varargin{7};
-        acdc = lower(varargin{6});
-        band = lower(varargin{5});
-        overlap = varargin{4};
-        navg = varargin{3};
-        win = lower(varargin{2});
-        nfft = varargin{1};
-    case 7
-        acdc = lower(varargin{6});
-        band = lower(varargin{5});
-        overlap = varargin{4};
-        navg = varargin{3};
-        win = lower(varargin{2});
-        nfft = varargin{1};
-    case 6
-        band = lower(varargin{5});
-        overlap = varargin{4};
-        navg = varargin{3};
-        win = lower(varargin{2});
-        nfft = varargin{1};
-    case 5
-        overlap = varargin{4};
-        navg = varargin{3};
-        win = lower(varargin{2});
-        nfft = varargin{1};
-    case 4
-        navg = varargin{3};
-        win = lower(varargin{2});
-        nfft = varargin{1};
-    case 3
-        win = lower(varargin{2});
-        nfft = varargin{1};
-    case 2
-        nfft = varargin{1};
+% force data into time series structure
+if isstruct(x)
+    ts = x;
+else
+    ts.data = x;
+    if nargin > 1
+        ts.fs = varargin{1};
+        varargin(1) = [];          % remove entry from optional input cell array
+    end
 end
 
-
-
-%% Handle input parameters and data
-
-% force into time series structure
-if ~isfield(ts,'data')
-    data = ts;
-    clear ts;
-    ts.data = data;
-    clear data;
+% force data to be a column vector if only a single channel
+if size(ts.data,1) == 1
+    ts.data = ts.data(:);
 end
-
-% force ts to be a column vector
 if size(ts.data,2) > size(ts.data,1)
-    ts.data = ts.data.';
+    warning('CALC_SPECTRUM:size','Number of channels exceeds number of data samples.  Verify data matrix dimensions.')
 end
+
+% verify structure contents
+if ~isfield(ts,'data')
+    error('Time series struct must contain "data" field')
+end
+if ~isfield(ts,'fs')
+    ts.fs = 1;
+end
+
+%% Handle optional input parameters
+%[nfft, win, navg, overlap, band, acdc, units]
+optargs =  {4096, @hamming, 1, 0.5, 'half', 'dc', 'Vpk'};
+nArgs = length(varargin);
+optargs(1:nArgs) = varargin;                                % overwrite defaults
+[nfft, win, navg, overlap, band, acdc, units] = optargs{:}; % assign parameters
+
 
 % get both window name and function handle, when available
 if ischar(win)
