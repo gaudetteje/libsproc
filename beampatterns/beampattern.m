@@ -2,9 +2,6 @@ close all
 
 nfft = 2^16;
 
-% apply aperture shading
-%array = array .* hamming(length(array)).';
-
 % random placement to reduce grating lobes
 
 % drop channels
@@ -13,16 +10,16 @@ nfft = 2^16;
 % steer beam to off-boresight
 %array = array .* exp(j*2*pi*1);
 
-c = 344;
-f = 20e3;%[20:10:100].* 1e3;
+c = 1500;
+f = [20:10:100].* 1e3;
 lambda = c./f;
 
-d = lambda/2;%.014;
+d = .02;%lambda/2;%.014;
 
-M = 130;
+M = 22;
 
 array = ones(1,M);
-wind = chebwin(M,40)';
+wind = rectwin(M)';
 
 pattern = abs(fftshift(fft(wind .* array,nfft)));
 pattern = db(pattern./max(pattern));
@@ -41,7 +38,7 @@ ylabel('Magnitude','fontsize',20)
 axis([-90 90 -60 6])
 set(gca,'xtick',[-90:30:90])
 
-text(15,-5,'\beta = 1.5\circ','fontsize',22,'fontweight','bold')
+%text(15,-5,'\beta = 1.5\circ','fontsize',22,'fontweight','bold')
 
 
 %color = {'b','g','r','c','m','k'};
