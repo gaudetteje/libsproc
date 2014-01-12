@@ -53,7 +53,7 @@ theta = theta(:);
 lambda = c./f;
 
 % compute theoretical piston beam pattern
-k = 2*pi/lambda;          % wavenumber (real component)
+k = 2*pi./lambda;          % wavenumber (real component)
 %k = 2*pi/lambda + 1i*alpha;        % complex wavenumber with optional damping factor
 
 beta = sin(theta*(pi/180)) * (k*D/2);           % z0' in Rschevkin
