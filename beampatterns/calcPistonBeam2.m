@@ -31,9 +31,9 @@ function varargout = calcPistonBeam2(D,f,varargin)
 %   Urick - Table 3.2 - pg. 43
 
 % assign default values
-theta = (-90:1:90).';       % angle from endfire [degrees]
+theta = (-90:.1:90).';       % angle from endfire [degrees]
 c = 344;                    % speed of sound [m/s]
-alpha = 0.1;                % damping factor (optional)
+alpha = 1;                % damping factor (optional)
 
 switch nargin
     case 4
@@ -53,8 +53,8 @@ theta = theta(:);
 lambda = c./f;
 
 % compute theoretical piston beam pattern
-k = 2*pi./lambda;          % wavenumber (real component)
-%k = 2*pi/lambda + 1i*alpha;        % complex wavenumber with optional damping factor
+%k = 2*pi./lambda;          % wavenumber (real component)
+k = 2*pi./lambda * 1./sqrt(1+1i*alpha);        % complex wavenumber with optional damping factor
 
 beta = sin(theta*(pi/180)) * (k*D/2);           % z0' in Rschevkin
 B = 2 * real(besselj(1,beta)) ./ beta;          % pressure amplitude

@@ -23,7 +23,7 @@ grid
 
 
 % line array of n elements (spacing of d)
-n = 1;
+n = 2;
 d = .014;
 B2 = (sin(n*pi*d*sin((theta*pi/180) ./lambda)) ./ ...
       (n*sin((pi*d./lambda)*sin(theta*pi/180))) ).^2;
