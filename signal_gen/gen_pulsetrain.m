@@ -1,4 +1,4 @@
-function ts = gen_pulsetrain(fs,tLen,pTime,N0,PT)
+function ts = gen_pulsetrain(fs,tLen,pTime,PT)
 % GEN_PULSETRAIN  creates a time series waveform using synthetic pulses
 %
 % Usage:
@@ -8,7 +8,6 @@ function ts = gen_pulsetrain(fs,tLen,pTime,N0,PT)
 %   fs           - sampling rate of generated waveform [Hz]
 %   tLen         - total duration of time series [sec]
 %   pTime        - start times for each pulse [sec]
-%   N0           - broadband noise level [dBA/sqrt(Hz)]
 %   PT           - array of structs containing individual pulse definitions
 %     .time      - start and stop times for each component [sec]
 %     .freq      - start and stop frequencies for each component [Hz]
@@ -16,6 +15,7 @@ function ts = gen_pulsetrain(fs,tLen,pTime,N0,PT)
 %     .winFn     - amplitude shading function [window function string or handle]
 %     .gain      - amplitude scaling factor for each component
 %     .phase     - initial phase for each component [radians]
+%   N0           - broadband noise level [dBA/sqrt(Hz)]
 %
 % Outputs:
 %   ts           - struct containing time series data
@@ -35,7 +35,7 @@ function ts = gen_pulsetrain(fs,tLen,pTime,N0,PT)
 %   fs = 1e6;
 %   tLen = 0.1;
 %   pTime = [0.01 0.06];
-%   N0 = -40;
+%   %%%N0 = -40;
 %
 %   P.time = [0 .025]';
 %   P.freq = [100e3 50e3]';
@@ -47,14 +47,14 @@ function ts = gen_pulsetrain(fs,tLen,pTime,N0,PT)
 %   PT(1) = P;
 %   P.freq = [50e3 25e3]';
 %   PT(2) = P;
-%   X = gen_pulsetrain(fs,tLen,pTime,N0,PT);
+%   X = gen_pulsetrain(fs,tLen,pTime,PT);
 %
 
 
 % initialize time series structure
 ts.timestamp = datestr(now());
 ts.fs = fs;
-ts.awgn = N0;
+%ts.awgn = N0;
 ts.pulse = PT;
 ts.time = (0:1/fs:tLen)';
 ts.data = zeros(length(ts.time),1);
@@ -106,7 +106,7 @@ end
 % end
 
 %% generate by absolute noise level (multiply std of noise)
-if N0
-    w = 10.^(N0/20) .* randn(size(ts.data));
-    ts.data = ts.data + w;
-end
+%if N0
+%    w = 10.^(N0/20) .* randn(size(ts.data));
+%    ts.data = ts.data + w;
+%end
