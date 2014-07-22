@@ -30,7 +30,4 @@ fc = calc_ctrfreq(x,fs);
 % calculate rms bandwidth
 n = trapz((f-fc).^2 .* (abs(Sxx).^2)) .* df;
 d = trapz(abs(Sxx).^2) .* df;
-beta = 2*pi*sqrt(n./d);
-
-plot(f,abs(Sxx))
-grid on
+beta = pi*sqrt(n./d);

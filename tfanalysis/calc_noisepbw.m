@@ -1,7 +1,11 @@
 function NPBW = calc_noisepbw(win)
 % CALC_NOISEPBW returns the equivalent noise power bandwidth of the specified
 % window
+%
+% see Haykin (2001) Communication Systems, 4th Ed., John Wiley & Sons, p. 722
 
+% todo:
+%    Add ability to numerically evaluate arbitrary window function
 
 % force input into window structure
 if ~isstruct(win)
@@ -15,11 +19,14 @@ if ~isstruct(win)
             warning('CALC_NOISEPBW:main','Window name not found on MATLAB path')
         end
     elseif isa(param,'function_handle')
+        win.name = func2str(param);
         win.fn = param;
-        win.name = func2str(win.fn);
         if ~exist(win.name,'file')
             warning('CALC_NOISEPBW:main','Window function must be a valid function name or handle')
         end
+    elseif isa(param,'double')
+        win.name = 'unknown';
+        win.fn = @(x) param;
     else
         error('CALC_NOISEPBW:main','Could not determine window NPBW.  Input parameter not a valid type.')
     end
@@ -30,10 +37,10 @@ end
 % if isfield(win,'fn')
 %     NPBW = calc_npbw(win.fn);            % window noise power bandwidth (calculation)
 % elseif isfield(win,'name')
-if 1        % temporarily use only a lookup table until calculation implemented
-    NPBW = lookup_npbw(win.name);        % window noise power bandwidth (lookup table)
+if exist(win.name,'file')        % temporarily use only a lookup table until calculation implemented
+    NPBW = calc_npbw(win.fn);
 else
-    error('CALC_NOISEPBW:main','Window structure must contain fields with a function handle "fn" and/or function name "name".')
+    NPBW = lookup_npbw(win.name);        % window noise power bandwidth (lookup table)
 end
 
 
@@ -46,7 +53,7 @@ function NPBW = lookup_npbw(winname)
 % lookup table of common windows
 
 switch lower(winname)
-    % available in MATLAB signal processing toolbox
+    % windows available in MATLAB signal processing toolbox
     case 'rectwin'
         NPBW = 1;
     case 'triang'
@@ -78,15 +85,22 @@ switch lower(winname)
 end
 
 
-function NPBW = calc_npbw(winfn)
+function B = calc_npbw(win)
 % CALC_NPBW returns the equivalent noise power bandwidth for any window
-% callable by MATLAB
 
-% N = 20;
-% nfft = 4096;
-% x = ones(N,1);
-% y0 = abs(fft(x,nfft));
-% y1 = abs(fft(x.*winfn(N),1024));
+N = 101;
+fs = N;
+nfft = 2^14;
+x = win(N);
+df = fs/nfft;       % spectral resolution
 
-%TBD
-NPBW = 1;
+% compute FFT
+f = (0:nfft-1)*df;
+y = fft(x,nfft)./N;
+yy = abs(y).^2;
+
+% compute equivalent noise power bandwidth
+n = trapz(yy)*df;
+d = max(yy);
+
+B = n/d;
