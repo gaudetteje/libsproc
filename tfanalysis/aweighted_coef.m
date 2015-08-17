@@ -4,6 +4,10 @@ function [b,a] = aweighted_coef(fs)
 % [b,a] = aweighted_coef(fs) designs an analog filter and transforms to a
 % digital filter using the bilinear transform
 
+%%%%  THIS DOES NOT WORK FOR HIGHER FREQUENCIES..  THE BILINEAR TRANSFORM
+%%%%  IS CAUSING RESPONSE AT HIGHER FREQUENCIES TO CHANGE DEPENDING ON THE
+%%%%  SAMPLING RATE -- TRY FIRLS OR SIMILAR FILTER
+
 %Analog A-weighting filter according to IEC/CD 1672.
 f1 = 20.598997; 
 f2 = 107.65265;
