@@ -1,6 +1,9 @@
-function beta = calc_rmsband(x,fs)
-% CALC_RMSBAND  compute the center frequency of a time series signal
-% (based on Rhiaczek)
+function [beta,fc] = calc_rmsband(x,fs)
+% CALC_RMSBAND  compute the rms signal bandwidth of a time series signal
+%
+% Reference:
+%     Rihaczek, A. (1996). Principles of High-Resolution Radar. Norwood, 
+%     MA: Artech House.
 
 % normalize sampling rate if none entered
 if nargin == 1

@@ -15,7 +15,34 @@ function x = gen_ifpulse_multi(fs,varargin)
 % Outputs:
 %   x            - column vector of time series amplitude
 %
-% See also GEN_IFPULSE
+% Example 1 (mono-component waveform):
+%   fs = 1e6;
+%
+%   P.time = [0 .005]';
+%   P.freq = [105e3 5e3]';
+%   P.modFn = 'lfm';
+%   P.winFn = 'raisedcos';
+%   P.gain = 1;
+%   P.phase = 0;
+%
+%   x = gen_ifpulse_multi(fs, P);
+%
+%
+% Example 2 (multi-component waveform):
+%   fs = 1e6;
+%
+%   P.time = [0 .005]';
+%   P.freq = [100e3 50e3; 50e3 25e3]';
+%   P.modFn = 'lfm';
+%   P.winFn = 'raisedcos';
+%   P.gain = [1 0.5];
+%   P.phase = 0;
+%
+%   x = gen_ifpulse_multi(fs, P);
+%
+% Note:  Each parameter may be entered as 1 or N for N component waveforms.
+%
+% See also GEN_IFPULSE GEN_PULSETRAIN
 
 % To Do:
 % - add band-limited noise generation process

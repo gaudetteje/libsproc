@@ -49,6 +49,7 @@ function ts = gen_pulsetrain(fs,tLen,pTime,PT)
 %   PT(2) = P;
 %   X = gen_pulsetrain(fs,tLen,pTime,PT);
 %
+% See also GEN_IFPULSE GEN_IFPULSE_MULTI
 
 
 % initialize time series structure
