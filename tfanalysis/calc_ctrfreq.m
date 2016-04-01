@@ -47,7 +47,7 @@ end
 %E1 = trapz(abs(x).^2) ./ fs;
 %E2 = trapz(abs(Sxx).^2).* df ./ fs;
 
-if 1
+if 0
     figure(1)
     plot(f*1e-3,db(abs(Sxx)))
     hold on

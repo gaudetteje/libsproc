@@ -34,3 +34,18 @@ fc = calc_ctrfreq(x,fs);
 n = trapz((f-fc).^2 .* (abs(Sxx).^2)) .* df;
 d = trapz(abs(Sxx).^2) .* df;
 beta = pi*sqrt(n./d);
+
+%%% sanity check
+
+% compute signal energy
+%E1 = trapz(abs(x).^2) ./ fs;
+%E2 = trapz(abs(Sxx).^2).* df ./ fs;
+
+if 1
+    figure(1)
+    plot(f*1e-3,db(abs(Sxx)./max(abs(Sxx))))
+    hold on
+    grid on
+    ylabel('Frequenc (kHz)')
+    
+end
