@@ -1,48 +1,63 @@
+%%% Computes a ULA beam pattern by beamforming on a synthetic planar wave
+
+clc
+clear
+
+
+% analysis parameters
+f = 1e3;            % analysis frequency [Hz]
+phi = 15;            % incident planar wave direction [degrees]
+%theta = -90:0.1:90;   % angular coordinates [degrees]
+theta = -180:0.1:180;   % angular coordinates [degrees] - show planar symmetry
 
 % physical parameters
-c = 1467;           % speed of sound [m/s]
-%c = 1500;
+%c = 1467;           % speed of sound [m/s]
+c = 1500;
 
 % array parameters
-N = 11;             % number of elements
+N = 22;             % number of elements
 dx = 0.15;          % element distance [m]
 
 % array shading coefficients
 %w = ones(N,1);      % rectangular window (natural array pattern)
-w = chebwin(N,30);  % Dolph-Chebychev window w/ sidelobe constraints
+w = chebwin(N,40);  % Dolph-Chebychev window w/ sidelobe constraints
+%w = hamming(N);     % Hamming window
+%w = hann(N);
 w = w./sum(w);      % enforce distortionless response constraint
 
-% analysis parameters
-theta = -90:1:90;
-f = 5e3;
-nfft = 4096;
-
 % plot parameters
-DR = 40;            % set plot dynamic range
-phi = 60;            % "look" or steering angle
+DR = 50;            % set plot dynamic range
 
 %%%%%%%%
-lambda = c./f;
-W = diag(w);
+%lambda = c./f;
 
-% construct beam
-%d = ones(1,N);      % steering vector to broadside (natural response)
-delta = (0:N-1)*dx*cosd(90-phi)/c;     % delay vector
-s = exp(1i*2*pi*f*delta);       % steering vector to phi
+%% construct beam
 
-Y = s * W;%* ones(N,1);
-%Y = ones(1,N) .* w';
 
+% calculate angular index
+%nfft = 4096;
+%L  = (-nfft/2:(nfft/2)-1);
+%theta = asin(L .* c./(f.*dx.*nfft)) .* 180/pi;
+
+% steering vectors for each look direction
+delay_phi = (0:N-1)'*dx*cosd(90-theta)/c;     % delay time vector [s]
+dphi = exp(1i*2*pi*f*delay_phi);       % phase steering vector to phi
+
+% construct unit energy data vector with aperture shading weights applied
+delay_theta = (0:N-1)'*dx*cosd(90-phi)/c;
+dtheta = exp(1i*2*pi*f*delay_theta);
+x = w .* dtheta;
+
+%W = diag(w);        % aperture shading diagonal matrix
+Y = x' * dphi;
+b = db(abs(Y).^2,'power');
 
 
 %% compute pattern in frequency domain
-pattern = abs(fftshift(fft(Y,nfft)));
-pattern = db(pattern);
+%b = abs(fftshift(fft(Y,nfft)));
+%b = db(b);
 %pattern = db(pattern./max(pattern));        % normalize to maximum
 
-% calculate angular index
-L  = (-nfft/2:(nfft/2)-1);
-angles = asin(L .* c./(f.*dx.*nfft)) .* 180/pi;
 
 %
 
@@ -53,14 +68,15 @@ angles = asin(L .* c./(f.*dx.*nfft)) .* 180/pi;
 %DI = calcBeamDirectivity(angles,pattern)
 
 
-%%% plot beam pattern on 
+%% plot beam pattern
 figure(1)
-ph = plot(angles,pattern);
+ph = plot(theta,b);
 grid on;
 hold on;
 xlabel('Angle (degrees)')
 ylabel('Magnitude (dB)')
 set(gca,'ylim',[-DR 3])
+set(gca,'xlim',[theta(1) theta(end)])
 
 color = {'b','g','r','c','m','k'};
 idx = length(get(gca,'Children'));
@@ -68,11 +84,11 @@ idx = mod(idx,length(color));
 set(ph,'Color',color{idx});
 
 %%% plot beam pattern on polar coordinates
-pattern(pattern < -DR) = -DR;
-patt = DR+pattern;
+b(b < -DR) = -DR;
+bpol = DR+b;
 
 figure(2)
-ph2 = polar(pi*angles/180,patt);
+ph2 = polar(pi*theta/180,bpol);
 hold on
 set(ph2,'Color',color{idx});
 view(270,90)
