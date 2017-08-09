@@ -5,10 +5,12 @@ c = 1467;           % speed of sound [m/s]
 
 % array parameters
 N = 11;             % number of elements
-d = 0.15;          % element distance [m]
+dx = 0.15;          % element distance [m]
 
-%w = ones(N,1);      % array shading coefficients
-w = chebwin(N,20);  % Dolph-Chebychev window w/ sidelobe constraints
+% array shading coefficients
+%w = ones(N,1);      % rectangular window (natural array pattern)
+w = chebwin(N,30);  % Dolph-Chebychev window w/ sidelobe constraints
+w = w./sum(w);      % enforce distortionless response constraint
 
 % analysis parameters
 theta = -90:1:90;
@@ -17,7 +19,7 @@ nfft = 4096;
 
 % plot parameters
 DR = 40;            % set plot dynamic range
-phi = 20;            % "look" or steering angle
+phi = 60;            % "look" or steering angle
 
 %%%%%%%%
 lambda = c./f;
@@ -25,23 +27,33 @@ W = diag(w);
 
 % construct beam
 %d = ones(1,N);      % steering vector to broadside (natural response)
-delta = (0:N-1)*d*cosd(90-phi)/c;     % delay vector
+delta = (0:N-1)*dx*cosd(90-phi)/c;     % delay vector
 s = exp(1i*2*pi*f*delta);       % steering vector to phi
 
 Y = s * W;%* ones(N,1);
 %Y = ones(1,N) .* w';
 
-%Y(2) = 0;      % knock out elements to see effect
 
-% compute sinc pattern based on fft
+
+%% compute pattern in frequency domain
 pattern = abs(fftshift(fft(Y,nfft)));
-pattern = db(pattern./max(pattern));
+pattern = db(pattern);
+%pattern = db(pattern./max(pattern));        % normalize to maximum
 
-% 
+% calculate angular index
 L  = (-nfft/2:(nfft/2)-1);
-angles = asin(L .* c./(f.*d.*nfft)) .* 180/pi;
+angles = asin(L .* c./(f.*dx.*nfft)) .* 180/pi;
+
+%
+
+% compute half-power beamwidth (HPBW)
+%HPBW = calcBeamwidth(angles,pattern)
+
+% compute the directivity index
+%DI = calcBeamDirectivity(angles,pattern)
 
 
+%%% plot beam pattern on 
 figure(1)
 ph = plot(angles,pattern);
 grid on;
@@ -55,6 +67,7 @@ idx = length(get(gca,'Children'));
 idx = mod(idx,length(color));
 set(ph,'Color',color{idx});
 
+%%% plot beam pattern on polar coordinates
 pattern(pattern < -DR) = -DR;
 patt = DR+pattern;
 
