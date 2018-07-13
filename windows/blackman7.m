@@ -10,15 +10,15 @@ function w = blackman7(n)
 %			w   => Window Coefficients;
 
 %		References:								
-%                               [1] O. M. Solomon, Jr., "The use of DFT windows in 
-%                                   signal-to-noise ratio and harmonic distortion 
-%                                   computations", IEEE Transactions on Instrumentation 
-%                                   and Measurement, vol. 43, no. 2, pp 194-199, April 
-%                                   1994.
+%				 [1] O. M. Solomon, Jr., "The use of DFT windows in 
+%						 signal-to-noise ratio and harmonic distortion 
+%						 computations", IEEE Transactions on Instrumentation 
+%						 and Measurement, vol. 43, no. 2, pp 194-199, April 
+%						 1994.
 %
-%       			[2] F. J. Harris, "On the use of windows for harmonic	
-%				    analysis with the Discrete Fourier Transform",	
-%				    Proceedings of the IEEE, Vol. 66, No. 1, Jan 1978.	
+%				[2] F. J. Harris, "On the use of windows for harmonic	
+%						analysis with the Discrete Fourier Transform",	
+%						Proceedings of the IEEE, Vol. 66, No. 1, Jan 1978.	
 %											
 %				[3] A. H. Nuttal, "Some windows with very good sidelobe	
 %				    behavior", IEEE Trans. on Acoustics, Speech & Signal

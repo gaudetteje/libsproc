@@ -3,4 +3,6 @@ function beta = calcBeamwidth(phi,pattern,varargin)
 %
 %
 
+% TBD
+
 beta = inf;

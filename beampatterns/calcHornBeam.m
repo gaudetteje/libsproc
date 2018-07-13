@@ -18,6 +18,8 @@ function calcHornBeam(D1,D2,L,f,varargin)
 %   horns: Idealized models for vertebrate pinnae." Acustica, Vol. 65,
 %   pp. 194-204
 
+%TBD
+
 % assign default values
 theta = (-90:1:90).';       % angle from endfire [degrees]
 c = 344;                    % speed of sound [m/s]

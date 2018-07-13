@@ -5,10 +5,10 @@ function w = raisedcos(n,varargin)
 % w = raisedcos(100,3) returns a 100 point column vector, w, with 3% taper
 % applied to the front and back
 %
-% w = raisedcos(100) assumes a 6.25% taper
+% w = raisedcos(100) assumes a 5% taper
 %
 
-p = 6.25;
+p = 5;
 if (nargin == 2); p = varargin{1}; end;
 
 w = ones(n,1);

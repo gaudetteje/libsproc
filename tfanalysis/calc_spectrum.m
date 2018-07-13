@@ -47,13 +47,6 @@ function fd = calc_spectrum(x,varargin)
 % 
 % See also CONVERT_SPECTRUM, FFT, PWELCH
 
-% Author:   Jason Gaudette
-% Company:  Naval Undersea Warfare Center (Newport, RI)
-% Phone:    401.832.6601
-% Email:    jason.e.gaudette@navy.mil
-% Date:     20130430
-%
-
 %% Handle data struct
 
 % force data into time series structure

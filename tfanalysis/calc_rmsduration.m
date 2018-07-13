@@ -1,6 +1,9 @@
 function tau = calc_rmsduration(x,fs)
 % CALC_RMSDURATION  computes the RMS signal duration
-% (based on Rhiaczek)
+%
+% Reference:
+%     Rihaczek, A. (1996). Principles of High-Resolution Radar. Norwood, 
+%     MA: Artech House.
 
 % normalize sampling rate if none entered
 if nargin == 1

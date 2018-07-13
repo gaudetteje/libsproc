@@ -24,9 +24,6 @@ function [Fu_up, Fu_down, Fv_up, Fv_down, X_up, X_down] = ambiguity_fft(fc, band
 % Code based on radar systems course notes:
 %   http://www.ece.uah.edu/courses/material/EE619/index.htm
 
-% Created by Elena Gaudette 01/20/2010
-
-
 T = 2*(length(bands(1).baseband_data) * 1/(header.fs/47));
 %T = 2*(length(bands(1).baseband_data) * 1/header.fs);
 %N = 2048;

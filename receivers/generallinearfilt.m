@@ -11,6 +11,9 @@ function Y = generallinearfilt(data,hmatch,alpha)
 % When alpha=1, H(f) is the matched filter.  When alpha=0, H(f) is the
 % inverse filter.  The GLF is defined for the alpha range 0 to 1.  Stable
 % filters will put a minimum bound of ~0.3 on alpha.
+%
+% See:  Sharma, N. S., & Buck, J. (2009). A generalized linear filter approach
+% for sonar receivers (pp. 507–512). Presented at the DSP/SPE 2009. IEEE 13th.
 
 % ensure good values for alpha
 assert(alpha >= 0, 'alpha parameter is out of bounds:  0 <= alpha <= 1')

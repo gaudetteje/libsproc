@@ -1,13 +1,5 @@
 function fftgroup(varargin)
-% FFTGROUP  Calculates the frequency spectrum for a large group of time
-% series
-
-% Author:   Jason Gaudette
-% Company:  Naval Undersea Warfare Center (Newport, RI)
-% Phone:    401.832.6601
-% Email:    gaudetteje@npt.nuwc.navy.mil
-% Date:     20060928
-%
+% FFTGROUP  Calculates the frequency spectrum for a large group of time series
 
 Navg = 4;   % number of pulses to average together
 winname = 'blackman7';

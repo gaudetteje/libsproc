@@ -1,13 +1,6 @@
 function locgroup(varargin)
 % LOCGROUP  Locates CW pulses for a large group of time series data
 
-% Author:   Jason Gaudette
-% Company:  Naval Undersea Warfare Center (Newport, RI)
-% Phone:    401.832.6601
-% Email:    gaudetteje@npt.nuwc.navy.mil
-% Date:     20060928
-%
-
 gamma = 200;
 
 tic;    % start timer

@@ -4,7 +4,7 @@ function Faf = frft(f, a)
 %        a = fractional power
 % output: Faf = fast Fractional Fourier transform
 
-% http://nalag.cs.kuleuven.be/research/software/FRFT/
+% Adapted from:  http://nalag.cs.kuleuven.be/research/software/FRFT/
 
 error(nargchk(2, 2, nargin));
 f = f(:);

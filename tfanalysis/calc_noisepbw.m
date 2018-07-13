@@ -2,7 +2,7 @@ function NPBW = calc_noisepbw(win)
 % CALC_NOISEPBW returns the equivalent noise power bandwidth of the specified
 % window
 %
-% see Haykin (2001) Communication Systems, 4th Ed., John Wiley & Sons, p. 722
+% Ref: Haykin (2001) Communication Systems, 4th Ed., John Wiley & Sons, p. 722
 
 % todo:
 %    Add ability to numerically evaluate arbitrary window function

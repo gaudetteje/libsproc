@@ -24,12 +24,6 @@ function varargout = classify_ipis_island(x)
 %     localization in bats. Frontiers in Physiology, 5, 168?13.
 %     http://doi.org/10.3389/fphys.2014.00168
 
-% Author:   Jason Gaudette
-% Company:  Naval Undersea Warfare Center (Newport, RI)
-% Phone:    401.832.6601
-% Email:    jason.e.gaudette@navy.mil
-% Date:     20160326
-
 % pick stability threshold for strobe groups > 2
 alpha = 1.2;
 gamma = 0.05;

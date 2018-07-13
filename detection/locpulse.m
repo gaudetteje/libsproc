@@ -1,18 +1,10 @@
 function pulses=locpulse(s, fs, fc, varargin)
-% LOCPULSE  This program detects the sample numbers and times for CW sonar
-% pulses.
+% LOCPULSE  This program detects the sample numbers and times for CW pulses.
 %
 % PULSES = LOCPULSE(T,S,FC,THRES) uses a matched filter for a sinusoid of
 % frequency FC to detect pulses in the signal vector S.  PULSES is a
 % structure of starting values where PULSES.index contains the sample
 % indices and PULSES.time contains the times based on the time vector T.
-
-% Author:   Jason Gaudette
-% Company:  Naval Undersea Warfare Center (Newport, RI)
-% Phone:    401.832.6601
-% Email:    gaudetteje@npt.nuwc.navy.mil
-% Date:     20061002
-%
 
 hlen = 0.001;
 if nargin > 3

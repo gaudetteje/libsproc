@@ -3,5 +3,7 @@ function [DI, D] = calcBeamDirectivity(phi,pattern)
 %
 %
 
+% TBD
+
 D = inf;
 DI = 10*log10(D);
